@@ -1,16 +1,6 @@
-#congtest.py
+# conftest.py - общие фикстуры для всех тестов
+# Веб-фикстуры находятся в tests/web/conftest.py
+# Мобильные фикстуры можно добавить в tests/mobile/conftest.py
 import pytest
-from pygments.styles.dracula import yellow
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 
-
-@pytest.fixture(scope="function")
-def browser():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
-    yield driver
-
-    driver.quit()
+# Общие фикстуры можно добавить здесь, если понадобятся
