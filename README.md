@@ -24,11 +24,18 @@ Stack / Стек
 
 Structure / Структура
 ---------------------
-- `pages/` — Page Object’ы (пример: `form_page.py` для demoqa.com).
+- `pages/` — Page Object'ы для веб-тестов (пример: `form_page.py` для demoqa.com).
+- `mobile_pages/` — Page Object'ы для мобильных тестов (Appium).
+  - `base_page.py` — базовый класс с общими методами поиска элементов.
+  - `settings_main_page.py` — главный экран настроек Android.
+  - `network_internet_page.py` — экран Network & internet.
+- `mobile_utils/` — утилиты для мобильных тестов (артефакты, скриншоты).
 - `tests/web/` — веб-тесты, пример `test_form_demoqa.py`.
-- `tests/mobile/` — будущие мобильные тесты (Appium).
+- `tests/mobile/` — мобильные тесты (Appium), пример `test_open_settings.py`.
 - `tests/resources/` — тестовые данные/файлы (для загрузки в форме).
-- `conftest.py` — фикстуры PyTest (инициализация браузера).
+- `conftest.py` — общие фикстуры PyTest.
+- `tests/web/conftest.py` — фикстуры для веб-тестов (браузер).
+- `tests/mobile/conftest.py` — фикстуры для мобильных тестов (Appium driver).
 - `requirements.txt` — список зависимостей.
 
 Setup / Подготовка окружения
@@ -57,13 +64,19 @@ Run DemoQA web test / Запуск веб-теста
 
 Mobile tests (Appium) / Мобильные тесты
 ---------------------------------------
-- Put scenarios in `tests/mobile/`.  
-- Make sure Appium Server is running (`appium`) and device/emulator is available.  
-- Typical run:
+- Тесты находятся в `tests/mobile/`.
+- Убедитесь, что Appium Server запущен (`appium`) и устройство/эмулятор доступны.
+- Настройте переменные окружения (опционально):
+  ```
+  ANDROID_DEVICE_NAME="Android Emulator"
+  ANDROID_UDID="emulator-5554"
+  APPIUM_SERVER_URL="http://127.0.0.1:4723"
+  ```
+- Запуск тестов:
    ```
    pytest tests/mobile -s -v
    ```
-  Prepare desired capabilities in tests/fixtures for your platform.
+- При падении теста автоматически сохраняются скриншот и page source в папку `artifacts/`.
 
 Git tips / Полезные команды Git
 -------------------------------

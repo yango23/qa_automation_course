@@ -47,3 +47,4 @@ def dump_visible_texts(driver: "WebDriver", limit: int = 60) -> None:
     if len(texts) > limit:
         print(f"... +{len(texts) - limit} more")
     print("=========================\n")
+

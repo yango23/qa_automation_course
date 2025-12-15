@@ -107,3 +107,5 @@ class BasePage:
         except TimeoutException as e:
             msg = timeout_msg or f"Timeout waiting for textContains: {text!r}"
             raise TimeoutException(msg) from e
+
+

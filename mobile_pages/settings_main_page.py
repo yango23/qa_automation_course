@@ -59,3 +59,6 @@ class SettingsMainPage(BasePage):
             None (переход на следующий экран)
         """
         self.click_text_contains("Network & internet", do_scroll=True)
+
+
+
