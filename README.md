@@ -6,13 +6,14 @@ EN
 - Sample project for mobile (Appium) and web (Selenium/PyTest) automation on Python.
 - Repository root is exactly `QA_Automation_course`; nothing outside is tracked.
 - Uses GitHub Copilot and Cursor to assist authoring tests.
-- Includes a DemoQA E2E web test; mobile scenarios go to `tests/mobile`.
+- Includes a DemoQA E2E web test; mobile scenarios go to `tests/mobile` (with Russian inline comments).
 
 RU
 --
 - Базовый проект для мобильной (Appium) и веб-автоматизации (Selenium/PyTest) на Python.
 - Корень репозитория — папка `QA_Automation_course`; лишние каталоги не пушатся.
 - Для написания тестов используются GitHub Copilot и Cursor.
+- Весь проект снабжён понятными русскими комментариями к шагам тестов и Page Object‑ам.
 - Есть пример E2E веб-теста DemoQA; мобильные кейсы кладём в `tests/mobile`.
 
 Stack / Стек

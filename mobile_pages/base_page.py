@@ -1,7 +1,7 @@
 """Базовый класс для Page Object паттерна в мобильных тестах."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -14,48 +14,46 @@ if TYPE_CHECKING:
 
 
 class BasePage:
-    """Базовый класс для всех Page Object в мобильных тестах."""
+    """
+    Базовый класс для всех Page Object в мобильных тестах.
+
+    Здесь собраны самые частые операции:
+    - инициализация драйвера и явных ожиданий;
+    - поиск элементов по тексту;
+    - клики по тексту с автоскроллом;
+    - ожидание появления текста на экране.
+    """
 
     def __init__(self, driver: "WebDriver", timeout: int = 20) -> None:
-        """Инициализация базового Page Object.
+        """
+        Инициализация базового Page Object.
 
-        Args:
-            driver: Appium WebDriver instance
-            timeout: Timeout для явных ожиданий в секундах
+        :param driver: живой экземпляр Appium WebDriver
+        :param timeout: таймаут для явных ожиданий (секунды)
         """
         self.driver = driver
+        # WebDriverWait будем переиспользовать во всех ожиданиях
         self.wait = WebDriverWait(driver, timeout)
 
-    # ====== Helpers ======
+    # ====== Поиск элементов ======
 
     def find_text_contains(self, text: str) -> "WebElement":
-        """Находит элемент по частичному совпадению текста.
+        """
+        Находит элемент по частичному совпадению текста.
 
-        Args:
-            text: Текст для поиска
-
-        Returns:
-            Найденный WebElement
-
-        Raises:
-            NoSuchElementException: Если элемент не найден
+        Важно: такой поиск менее стабильный, чем по id, но в экранах настроек
+        Android часто нет удобных resource-id, поэтому используем текст.
         """
         return self.driver.find_element(
             AppiumBy.ANDROID_UIAUTOMATOR,
-            f'new UiSelector().textContains("{text}")'
+            f'new UiSelector().textContains("{text}")',
         )
 
     def scroll_to_text_contains(self, text: str) -> "WebElement":
-        """Прокручивает до элемента с указанным текстом.
+        """
+        Прокручивает список до элемента с указанным текстом и возвращает его.
 
-        Args:
-            text: Текст для поиска
-
-        Returns:
-            Найденный WebElement после прокрутки
-
-        Raises:
-            NoSuchElementException: Если элемент не найден даже после прокрутки
+        Используется, когда нужный пункт меню Settings скрыт ниже первого экрана.
         """
         ui = (
             'new UiScrollable(new UiSelector().scrollable(true))'
@@ -63,44 +61,62 @@ class BasePage:
         )
         return self.driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, ui)
 
+    def find_by_id_and_text(self, res_id: str, text: str) -> "WebElement":
+        """
+        Находит элемент в списке по связке `resource-id + видимый текст`.
+
+        Это более надёжный способ, чем поиск только по тексту.
+        Полезно для списков, где все элементы имеют одинаковый id, но разный label.
+        """
+        return self.driver.find_element(
+            AppiumBy.ANDROID_UIAUTOMATOR,
+            'new UiSelector()'
+            f'.resourceId("{res_id}")'
+            f'.text("{text}")',
+        )
+
+    # ====== Действия ======
+
     def click_text_contains(self, text: str, do_scroll: bool = True) -> "WebElement":
-        """Кликает по элементу с указанным текстом.
+        """
+        Кликает по элементу с указанным текстом.
 
-        Если элемент не найден и do_scroll=True, пытается прокрутить до него.
-
-        Args:
-            text: Текст для поиска
-            do_scroll: Прокручивать ли до элемента, если он не найден
-
-        Returns:
-            Кликнутый WebElement
-
-        Raises:
-            NoSuchElementException: Если элемент не найден
+        :param text: текст, по которому ищем элемент
+        :param do_scroll: если True — сначала пробуем найти без скролла,
+                          если не нашли — прокручиваем экран до элемента.
         """
         try:
             el = self.find_text_contains(text)
         except Exception:
             if not do_scroll:
+                # Явно даём знать вызывающему коду, что элемент не найден
                 raise
             el = self.scroll_to_text_contains(text)
         el.click()
         return el
 
+    def click_by_id_and_text(self, res_id: str, text: str) -> "WebElement":
+        """
+        Кликает по элементу списка настроек по `resource-id` и точному `text`.
+
+        Пример: все пункты списка имеют id `android:id/title`,
+        а различаются только текстом ("Internet", "Wi‑Fi" и т.д.).
+        """
+        el = self.find_by_id_and_text(res_id, text)
+        el.click()
+        return el
+
+    # ====== Ожидания ======
+
     def wait_text_contains(
-        self, text: str, timeout_msg: str | None = None
+        self,
+        text: str,
+        timeout_msg: str | None = None,
     ) -> "WebElement":
-        """Ждёт появления элемента с указанным текстом на экране.
+        """
+        Ждёт появления элемента с указанным текстом на экране.
 
-        Args:
-            text: Текст для поиска
-            timeout_msg: Кастомное сообщение об ошибке при таймауте
-
-        Returns:
-            Найденный WebElement
-
-        Raises:
-            TimeoutException: Если элемент не появился в течение timeout
+        Удобно использовать как "якорь" того, что нужный экран действительно открылся.
         """
         try:
             return self.wait.until(lambda d: self.find_text_contains(text))
@@ -108,4 +124,30 @@ class BasePage:
             msg = timeout_msg or f"Timeout waiting for textContains: {text!r}"
             raise TimeoutException(msg) from e
 
+    def wait_any_text_contains(
+        self,
+        texts: Iterable[str],
+        timeout_msg: str | None = None,
+    ) -> "WebElement":
+        """
+        Ждёт появления хотя бы одного текста из списка.
 
+        Полезно для разных версий Android, где заголовок экрана может немного отличаться
+        (например, "Network & internet" / "Internet" / "Wi‑Fi").
+        """
+        last_error: Exception | None = None
+
+        def _probe(_driver):
+            nonlocal last_error
+            for t in texts:
+                try:
+                    return self.find_text_contains(t)
+                except Exception as e:
+                    last_error = e
+            return False
+
+        try:
+            return self.wait.until(_probe)
+        except TimeoutException as e:
+            msg = timeout_msg or f"Timeout waiting any of: {list(texts)!r}"
+            raise TimeoutException(msg) from (last_error or e)

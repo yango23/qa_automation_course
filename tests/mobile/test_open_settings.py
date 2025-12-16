@@ -1,108 +1,46 @@
-import os
-import time
-from datetime import datetime
+"""Мобильные тесты для открытия экрана настроек Android."""
 
-from selenium.webdriver.support.ui import WebDriverWait
-
-from appium import webdriver
-from appium.options.android import UiAutomator2Options
-from appium.webdriver.common.appiumby import AppiumBy
+from mobile_pages.settings_main_page import SettingsMainPage
+from mobile_pages.network_internet_page import NetworkInternetPage
+from mobile_utils.artifacts import save_artifacts
 
 
-ARTIFACTS_DIR = "artifacts"
+def test_open_android_settings(driver) -> None:
+    """
+    Базовый сценарий:
+    1. Открыть системное приложение Settings через shell‑команду (как `adb shell`).
+    2. Проверить, не попали ли мы сразу на экран Network & internet.
+    3. Если нет — открыть Settings → раздел Network & internet обычным кликом по меню.
+    4. Убедиться, что экран Network & internet действительно загрузился.
+    5. Сохранить артефакты успешного прогона (скриншот + page source).
+    """
 
-
-def save_artifacts(driver, prefix="mobile"):
-    os.makedirs(ARTIFACTS_DIR, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    png = os.path.join(ARTIFACTS_DIR, f"{prefix}_{ts}.png")
-    xml = os.path.join(ARTIFACTS_DIR, f"{prefix}_{ts}.xml")
-
-    driver.save_screenshot(png)
-    with open(xml, "w", encoding="utf-8") as f:
-        f.write(driver.page_source)
-
-    print(f"[ARTIFACT] screenshot: {png}")
-    print(f"[ARTIFACT] page_source: {xml}")
-
-
-def dump_visible_texts(driver, limit=60):
-    tvs = driver.find_elements(AppiumBy.CLASS_NAME, "android.widget.TextView")
-    texts = [el.text.strip() for el in tvs if el.text and el.text.strip()]
-    print("\n===== VISIBLE TEXTS =====")
-    for t in texts[:limit]:
-        print(repr(t))
-    if len(texts) > limit:
-        print(f"... +{len(texts) - limit} more")
-    print("=========================\n")
-
-
-def find_text_contains(driver, text: str):
-    return driver.find_element(
-        AppiumBy.ANDROID_UIAUTOMATOR,
-        f'new UiSelector().textContains("{text}")'
+    # 1) Открываем Settings через mobile: shell (аналог adb shell)
+    driver.execute_script(
+        "mobile: shell",
+        {"command": "am", "args": ["start", "-a", "android.settings.SETTINGS"]},
     )
 
-
-def scroll_to_text_contains(driver, text: str):
-    ui = (
-        'new UiScrollable(new UiSelector().scrollable(true))'
-        f'.scrollIntoView(new UiSelector().textContains("{text}"))'
-    )
-    return driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, ui)
-
-
-def test_open_android_settings():
-    driver = None
+    # 2) Быстрый путь: возможно, система сразу открыла нужный экран
+    #    Например, если раньше пользователь уже был в Network & internet.
+    net = NetworkInternetPage(driver)
     try:
-        # 1) Создаём сессию. ВАЖНО: не указываем appPackage/appActivity вообще.
-        # Пусть сессия стартует, а Settings откроем через shell-intent (как в adb).
-        options = UiAutomator2Options()
-        options.platform_name = "Android"
-        options.automation_name = "UiAutomator2"
-        options.device_name = "Android Emulator"
-        options.udid = "emulator-5554"
-        options.no_reset = True
-        options.new_command_timeout = 300
-
-        driver = webdriver.Remote("http://127.0.0.1:4723", options=options)
-        wait = WebDriverWait(driver, 20)
-
-        print("[STEP] start Settings via intent (like adb)")
-        # Аналог: adb shell am start -a android.settings.SETTINGS
-        driver.execute_script(
-            "mobile: shell",
-            {
-                "command": "am",
-                "args": ["start", "-a", "android.settings.SETTINGS"]
-            }
-        )
-
-        print("[STEP] wait for Settings main anchor: 'Search Settings'")
-        # Ждём, пока появится строка поиска
-        wait.until(lambda d: find_text_contains(d, "Search Settings"))
-
-        dump_visible_texts(driver)
-
-        print("[STEP] find & click 'Network & internet'")
-        # На твоём скрине есть "Network & internet"
-        try:
-            el = find_text_contains(driver, "Network & internet")
-        except Exception:
-            # если вдруг не видно (на других устройствах/масштабах) — скроллим
-            el = scroll_to_text_contains(driver, "Network & internet")
-
-        el.click()
-
-        print("[OK] clicked Network & internet")
-        time.sleep(2)
-
+        net.wait_loaded()
+        # Если якоря Network & internet нашлись — тест можно считать успешным.
+        save_artifacts(driver, prefix="settings_direct_ok")
+        return
     except Exception:
-        if driver:
-            save_artifacts(driver, prefix="settings_fail")
-            dump_visible_texts(driver)
-        raise
-    finally:
-        if driver:
-            driver.quit()
+        # Иначе игнорируем и идём по "нормальному" сценарию через главный экран.
+        pass
+
+    # 3) Обычный путь:
+    #    главный экран Settings → клик по пункту "Network & internet".
+    settings = SettingsMainPage(driver).wait_loaded()
+    settings.open_network_and_internet()
+
+    # 4) После клика по пункту меню ещё раз убеждаемся, что экран Network & internet открыт.
+    NetworkInternetPage(driver).wait_loaded()
+
+    # 5) На удачный сценарий тоже полезно сохранять артефакты —
+    #    по ним удобно разбирать, как выглядел экран в момент прогона.
+    save_artifacts(driver, prefix="settings_ok")
