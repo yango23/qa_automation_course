@@ -1,6 +1,6 @@
-# conftest.py - общие фикстуры для всех тестов
-# Веб-фикстуры находятся в tests/web/conftest.py
-# Мобильные фикстуры можно добавить в tests/mobile/conftest.py
+# conftest.py - common fixtures for all tests
+# Web fixtures are in tests/web/conftest.py
+# Mobile fixtures are in tests/mobile/conftest.py
 import pytest
 
-# Общие фикстуры можно добавить здесь, если понадобятся
+# Common fixtures can be added here if needed

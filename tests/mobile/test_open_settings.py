@@ -1,4 +1,4 @@
-"""Мобильные тесты для открытия экрана настроек Android."""
+"""Mobile tests for opening Android Settings screen."""
 
 from mobile_pages.settings_main_page import SettingsMainPage
 from mobile_pages.network_internet_page import NetworkInternetPage
@@ -7,40 +7,40 @@ from mobile_utils.artifacts import save_artifacts
 
 def test_open_android_settings(driver) -> None:
     """
-    Базовый сценарий:
-    1. Открыть системное приложение Settings через shell‑команду (как `adb shell`).
-    2. Проверить, не попали ли мы сразу на экран Network & internet.
-    3. Если нет — открыть Settings → раздел Network & internet обычным кликом по меню.
-    4. Убедиться, что экран Network & internet действительно загрузился.
-    5. Сохранить артефакты успешного прогона (скриншот + page source).
+    Basic scenario:
+    1. Open system Settings app via shell command (like `adb shell`).
+    2. Check if we're already on Network & internet screen.
+    3. If not, open Settings -> Network & internet section via menu click.
+    4. Verify that Network & internet screen has actually loaded.
+    5. Save successful run artifacts (screenshot + page source).
     """
 
-    # 1) Открываем Settings через mobile: shell (аналог adb shell)
+    # 1) Open Settings via mobile: shell (analog of adb shell)
     driver.execute_script(
         "mobile: shell",
         {"command": "am", "args": ["start", "-a", "android.settings.SETTINGS"]},
     )
 
-    # 2) Быстрый путь: возможно, система сразу открыла нужный экран
-    #    Например, если раньше пользователь уже был в Network & internet.
+    # 2) Fast path: system might have opened the target screen directly
+    #    For example, if user was previously in Network & internet.
     net = NetworkInternetPage(driver)
     try:
         net.wait_loaded()
-        # Если якоря Network & internet нашлись — тест можно считать успешным.
+        # If Network & internet anchors are found, test can be considered successful.
         save_artifacts(driver, prefix="settings_direct_ok")
         return
     except Exception:
-        # Иначе игнорируем и идём по "нормальному" сценарию через главный экран.
+        # Otherwise ignore and proceed with "normal" path via main screen.
         pass
 
-    # 3) Обычный путь:
-    #    главный экран Settings → клик по пункту "Network & internet".
+    # 3) Normal path:
+    #    Settings main screen -> click "Network & internet" menu item.
     settings = SettingsMainPage(driver).wait_loaded()
     settings.open_network_and_internet()
 
-    # 4) После клика по пункту меню ещё раз убеждаемся, что экран Network & internet открыт.
+    # 4) After clicking menu item, verify again that Network & internet screen is open.
     NetworkInternetPage(driver).wait_loaded()
 
-    # 5) На удачный сценарий тоже полезно сохранять артефакты —
-    #    по ним удобно разбирать, как выглядел экран в момент прогона.
+    # 5) It's useful to save artifacts on successful scenarios too —
+    #    they help analyze how the screen looked at the moment of test run.
     save_artifacts(driver, prefix="settings_ok")

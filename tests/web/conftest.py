@@ -1,4 +1,4 @@
-"""Конфигурация pytest для веб-тестов."""
+"""Pytest configuration for web tests."""
 from typing import Generator
 
 import pytest
@@ -15,7 +15,7 @@ except ImportError:
 
 @pytest.fixture(scope="function")
 def browser() -> Generator[webdriver.Chrome, None, None]:
-    """Фикстура для создания и закрытия браузера Chrome для веб-тестов.
+    """Fixture for creating and closing Chrome browser for web tests.
 
     Yields:
         Chrome WebDriver instance
@@ -30,4 +30,3 @@ def browser() -> Generator[webdriver.Chrome, None, None]:
     )
     yield driver
     driver.quit()
-

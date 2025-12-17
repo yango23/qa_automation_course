@@ -1,12 +1,13 @@
+"""Page Object for Network & internet settings screen."""
 from __future__ import annotations
 
 from mobile_pages.base_page import BasePage
 
 
 class NetworkInternetPage(BasePage):
-    """Page Object для экрана раздела настроек *Network & internet*."""
+    """Page Object for Network & internet settings screen."""
 
-    # Возможные якоря, по которым можно понять, что экран действительно открылся.
+    # Possible anchors to confirm the screen has actually opened
     ANCHORS = [
         "Network & internet",
         "Internet",
@@ -16,10 +17,10 @@ class NetworkInternetPage(BasePage):
 
     def wait_loaded(self) -> "NetworkInternetPage":
         """
-        Ждём, пока откроется экран Network & internet.
+        Wait for Network & internet screen to open.
 
-        На разных версиях Android текст заголовка может отличаться, поэтому
-        проверяем сразу несколько вариантов из списка ANCHORS.
+        On different Android versions, screen title text may vary, so we check
+        multiple options from the ANCHORS list.
         """
         self.wait_any_text_contains(
             self.ANCHORS,
@@ -29,10 +30,10 @@ class NetworkInternetPage(BasePage):
 
     def open_internet(self) -> "NetworkInternetPage":
         """
-        Открывает пункт меню "Internet" внутри раздела Network & internet.
+        Open "Internet" menu item within Network & internet section.
 
-        На стандартных настройках Android заголовки пунктов списка обычно имеют
-        resource-id `android:id/title`, а различаются только текстом.
+        On standard Android settings, list item titles usually have
+        resource-id `android:id/title` and differ only by text.
         """
         self.click_by_id_and_text("android:id/title", "Internet")
         return self

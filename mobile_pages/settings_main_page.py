@@ -1,9 +1,9 @@
-"""Page Object для главного экрана настроек Android.
+"""Page Object for Android Settings main screen.
 
-На этом экране обычно отображаются основные разделы системных настроек:
+This screen typically displays main system settings sections:
 - Network & internet;
 - Connected devices;
-- Apps и т.д.
+- Apps, etc.
 """
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ from mobile_pages.base_page import BasePage
 
 
 class SettingsMainPage(BasePage):
-    """Page Object для главного экрана настроек Android."""
+    """Page Object for Android Settings main screen."""
 
-    # Якоря: любой из этих текстов означает, что мы действительно на главном экране Settings.
+    # Anchors: any of these texts indicates we're on the Settings main screen
     ANCHORS = [
         "Network & internet",
         "Connected devices",
@@ -21,14 +21,14 @@ class SettingsMainPage(BasePage):
         "Notifications",
         "Battery",
         "Storage",
-        "Search Settings",  # на Pixel / Android 13 часто есть строка поиска
+        "Search Settings",  # Often present on Pixel / Android 13
     ]
 
     def wait_loaded(self) -> "SettingsMainPage":
         """
-        Ждём, пока откроется главный экран Settings.
+        Wait for Settings main screen to open.
 
-        Используем несколько возможных текстов-якорей, чтобы покрыть разные версии Android.
+        Uses multiple possible anchor texts to cover different Android versions.
         """
         self.wait_any_text_contains(
             self.ANCHORS,
@@ -38,8 +38,8 @@ class SettingsMainPage(BasePage):
 
     def open_network_and_internet(self) -> None:
         """
-        Открывает раздел "Network & internet" из главного экрана Settings.
+        Open "Network & internet" section from Settings main screen.
 
-        Если пункт скрыт за пределами первого экрана, метод сам проскроллит до него.
+        If the item is hidden beyond the first screen, method will auto-scroll to it.
         """
         self.click_text_contains("Network & internet", do_scroll=True)

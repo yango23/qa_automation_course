@@ -1,4 +1,4 @@
-"""Page Object для формы DemoQA Practice Form."""
+"""Page Object for DemoQA Practice Form page."""
 import os
 from typing import TYPE_CHECKING
 
@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 
 class FormPage:
-    """Page Object для страницы формы DemoQA."""
+    """Page Object for DemoQA form page."""
 
     URL = "https://demoqa.com/automation-practice-form"
 
-    # Локаторы (id, css или xpath)
+    # Locators (id, css or xpath)
     FIRST_NAME = (By.ID, "firstName")
     LAST_NAME = (By.ID, "lastName")
     EMAIL = (By.ID, "userEmail")
@@ -34,60 +34,60 @@ class FormPage:
     MODAL_TABLE = (By.CSS_SELECTOR, ".table-responsive")
 
     def __init__(self, driver: "WebDriver", timeout: int = 10) -> None:
-        """Инициализация Page Object.
+        """Initialize Page Object.
 
         Args:
             driver: WebDriver instance
-            timeout: Timeout для явных ожиданий в секундах
+            timeout: Timeout for explicit waits in seconds
         """
         self.driver = driver
         self.wait = WebDriverWait(driver, timeout)
 
     def open(self) -> None:
-        """Открывает страницу формы."""
+        """Open form page."""
         self.driver.get(self.URL)
         self.driver.execute_script("window.scrollTo(0, 200);")
 
     def fill_name(self, first: str, last: str) -> None:
-        """Вводит имя и фамилию.
+        """Enter first and last name.
 
         Args:
-            first: Имя
-            last: Фамилия
+            first: First name
+            last: Last name
         """
         self.wait.until(EC.visibility_of_element_located(self.FIRST_NAME)).send_keys(first)
         self.wait.until(EC.visibility_of_element_located(self.LAST_NAME)).send_keys(last)
 
     def fill_email(self, email: str) -> None:
-        """Вводит email.
+        """Enter email address.
 
         Args:
-            email: Email адрес
+            email: Email address
         """
         self.wait.until(EC.visibility_of_element_located(self.EMAIL)).send_keys(email)
 
     def choose_gender(self, gender_text: str) -> None:
-        """Выбирает пол по тексту.
+        """Select gender by text.
 
         Args:
-            gender_text: Текст для выбора (например, "Male", "Female", "Other")
+            gender_text: Text to select (e.g., "Male", "Female", "Other")
         """
         xpath = (By.XPATH, self.GENDER_LABEL.format(gender=gender_text))
         self.wait.until(EC.element_to_be_clickable(xpath)).click()
 
     def fill_mobile(self, mobile: str) -> None:
-        """Вводит номер телефона.
+        """Enter phone number.
 
         Args:
-            mobile: Номер телефона
+            mobile: Phone number
         """
         self.wait.until(EC.visibility_of_element_located(self.MOBILE)).send_keys(mobile)
 
     def fill_subject(self, subject: str) -> None:
-        """Вводит предмет.
+        """Enter subject.
 
         Args:
-            subject: Название предмета
+            subject: Subject name
         """
         subject_field = self.wait.until(EC.element_to_be_clickable(self.SUBJECT_INPUT))
         subject_field.click()
@@ -95,22 +95,22 @@ class FormPage:
         subject_field.send_keys(Keys.RETURN)
 
     def choose_hobby(self, hobby_text: str) -> None:
-        """Выбирает хобби по тексту.
+        """Select hobby by text.
 
         Args:
-            hobby_text: Текст для выбора (например, "Sports", "Reading", "Music")
+            hobby_text: Text to select (e.g., "Sports", "Reading", "Music")
         """
         xpath = (By.XPATH, self.HOBBY_LABEL.format(hobby=hobby_text))
         self.wait.until(EC.element_to_be_clickable(xpath)).click()
 
     def upload_picture(self, file_path: str) -> None:
-        """Загружает файл изображения.
+        """Upload image file.
 
         Args:
-            file_path: Путь к файлу для загрузки
+            file_path: Path to file for upload
 
         Raises:
-            FileNotFoundError: Если файл не найден
+            FileNotFoundError: If file not found
         """
         abs_path = os.path.abspath(file_path)
         if not os.path.exists(abs_path):
@@ -118,22 +118,22 @@ class FormPage:
         self.wait.until(EC.presence_of_element_located(self.UPLOAD)).send_keys(abs_path)
 
     def fill_address(self, address_text: str) -> None:
-        """Вводит адрес.
+        """Enter address.
 
         Args:
-            address_text: Текст адреса
+            address_text: Address text
         """
         self.wait.until(EC.visibility_of_element_located(self.ADDRESS)).send_keys(address_text)
 
     def choose_state_and_city(self, state: str, city: str) -> None:
-        """Выбирает штат и город.
+        """Select state and city.
 
-        DemoQA использует кастомные селекты на базе react-select.
-        Можно ввести текст в вспомогательный input и нажать Enter.
+        DemoQA uses custom selects based on react-select.
+        Can enter text in helper input and press Enter.
 
         Args:
-            state: Название штата
-            city: Название города
+            state: State name
+            city: City name
         """
         state_input = self.wait.until(EC.element_to_be_clickable(self.STATE))
         state_input.send_keys(state)
@@ -144,24 +144,24 @@ class FormPage:
         city_input.send_keys(Keys.RETURN)
 
     def submit(self) -> None:
-        """Прокручивает до кнопки и нажимает сабмит через JavaScript."""
+        """Scroll to button and click submit via JavaScript."""
         button = self.wait.until(EC.element_to_be_clickable(self.SUBMIT_BUTTON))
         self.driver.execute_script("arguments[0].scrollIntoView(true);", button)
         self.driver.execute_script("arguments[0].click();", button)
 
     def wait_for_modal(self) -> str:
-        """Ждёт появления модального окна и возвращает текст заголовка.
+        """Wait for result modal to appear and return title text.
 
         Returns:
-            Текст заголовка модального окна
+            Modal title text
         """
         title = self.wait.until(EC.visibility_of_element_located(self.MODAL_TITLE)).text
         return title
 
     def get_modal_table_text(self) -> str:
-        """Возвращает текст таблицы результатов.
+        """Return result table text.
 
         Returns:
-            Текст таблицы результатов
+            Result table text
         """
         return self.wait.until(EC.visibility_of_element_located(self.MODAL_TABLE)).text
